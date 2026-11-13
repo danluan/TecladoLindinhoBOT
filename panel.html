@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teclado no Discord</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #fff; --fg: #1d1d1f; --muted: #6e6e73; --line: #e3e1dc;
+    --accent: #5865f2; --accent-fg: #fff; --ok: #1f9d55; --warn: #c27c0e; --bad: #d03a3a;
+    --chip: #efede8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141416; --card: #1d1d20; --fg: #ececee; --muted: #9a9aa2; --line: #2e2e33;
+      --accent: #7b86ff; --accent-fg: #0d0d10; --ok: #3ccf7a; --warn: #e6a640; --bad: #ff6b6b;
+      --chip: #28282d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .status { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px;
+          background: var(--chip); font-size: 13px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input[type=search] { width: 100%; }
+  select, input[type=search] { flex: 1; min-width: 0; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--line);
+          background: var(--bg); color: var(--fg); font: inherit; }
+  button { padding: 9px 14px; border-radius: 9px; border: 1px solid var(--line); background: var(--chip);
+           color: var(--fg); font: inherit; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; font-weight: 600; }
+  button:disabled { opacity: .45; cursor: default; }
+  .current { font-size: 22px; font-weight: 650; margin: 0 0 12px; }
+  .toggle { display: flex; align-items: center; gap: 8px; margin: -4px 0 12px; font-size: 14px; cursor: pointer; }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .vno { font-variant-numeric: tabular-nums; color: var(--accent); }
+  .current .sub { display: block; font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 4px; }
+  .current small { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .favs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .favs button { padding: 6px 12px; border-radius: 99px; font-size: 14px; }
+  .favs button.on, .list button.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .list { max-height: 320px; overflow-y: auto; margin-top: 10px; border-top: 1px solid var(--line); }
+  .family { font-size: 12px; color: var(--muted); margin: 12px 0 6px; }
+  .list .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+  .list button { text-align: left; font-size: 13px; padding: 7px 9px; }
+  .list button span { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .list button.on span { color: inherit; opacity: .7; }
+  .slider { display: grid; grid-template-columns: 80px 1fr 48px; gap: 10px; align-items: center; margin: 6px 0; }
+  .slider output { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .meter { height: 8px; border-radius: 99px; background: var(--chip); overflow: hidden; }
+  .meter div { height: 100%; width: 0; background: var(--ok); transition: width .1s linear; }
+  .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+  .err { color: var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <section>
+    <h1>🎹 Teclado no Discord</h1>
+    <div class="status" id="status"></div>
+  </section>
+
+  <section class="card">
+    <h2>Call</h2>
+    <div class="row">
+      <select id="channel"></select>
+      <button class="primary" id="join">Entrar</button>
+      <button id="leave">Sair</button>
+    </div>
+    <p class="hint" id="callHint"></p>
+  </section>
+
+  <section class="card">
+    <h2>Timbre</h2>
+    <p class="current" id="current">—</p>
+    <label class="toggle"><input type="checkbox" id="follow"> <span id="followLabel">Sincronizar com o teclado</span></label>
+    <div class="favs" id="favs"></div>
+    <input type="search" id="search" placeholder="Buscar entre as 497 vozes do PSR-E333… (nome, categoria ou número: flauta, sax, 088)">
+    <div class="list" id="list"></div>
+  </section>
+
+  <section class="card">
+    <h2>Som</h2>
+    <div class="slider"><label for="volume">Volume</label><input type="range" id="volume" min="0" max="200" step="5"><output id="volumeOut"></output></div>
+    <div class="slider"><label for="reverb">Reverb</label><input type="range" id="reverb" min="0" max="100" step="5"><output id="reverbOut"></output></div>
+    <div class="slider" title="nível do áudio enviado · notas tocadas"><span>Saída</span><div class="meter"><div id="meter"></div></div><output id="notes"></output></div>
+    <div class="row" style="margin-top:12px">
+      <button id="demo">▶ Testar som</button>
+      <button id="panic">■ Parar notas presas</button>
+    </div>
+  </section>
+</main>
+
+<script>
+// keyboard voice numbers (as on the PSR-E333 display)
+const FAVS = [[88, "Ocarina"], [1, "Grand Piano"], [9, "Piano elétrico"], [23, "Órgão de tubos"], [25, "Acordeão"],
+              [29, "Violão"], [47, "Cordas"], [53, "Violino"], [64, "Sax alto"], [84, "Flauta"], [86, "Flauta pan"],
+              [72, "Trompete"], [59, "Coral"], [101, "Vibrafone"], [96, "Pad"], [141, "Bateria"]];
+const PT = { flauta: "flute", violao: "guitar", violão: "guitar", guitarra: "guitar", orgao: "organ", órgão: "organ",
+  cordas: "string", trompete: "trumpet", violino: "violin", baixo: "bass", coro: "choir", coral: "choir", sino: "bell",
+  harpa: "harp", gaita: "harmonica", acordeon: "accordion", acordeão: "accordion", bateria: "kit", sintetizador: "synth" };
+
+const $ = (id) => document.getElementById(id);
+let voiceList = [], state = null, dragging = null;
+
+const api = (path, body) => fetch(path, body === undefined ? {} : {
+  method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json());
+
+function pill(text, cls) { return `<span class="pill"><span class="dot ${cls}"></span>${text}</span>`; }
+
+function renderStatus(s) {
+  const enc = s.encrypted === null ? "" : s.encrypted
+    ? pill("Áudio criptografado ok", "ok") : pill("Criptografia não pronta: ninguém ouve", "bad");
+  $("status").innerHTML =
+    (s.online ? pill(`Bot online: ${s.user}`, "ok") : pill("Bot conectando…", "warn")) +
+    (s.keyboard ? pill(`Teclado: ${s.keyboard}`, "ok") : pill("Teclado não encontrado", "bad")) +
+    (s.channel ? pill(`Na call: ${s.channel.name}`, "ok") : pill("Fora da call", "")) + enc;
+}
+
+function renderChannels(s) {
+  const sel = $("channel"), prev = sel.value;
+  const key = JSON.stringify(s.channels);
+  if (sel.dataset.key !== key) {
+    sel.dataset.key = key;
+    sel.innerHTML = s.channels.map(c =>
+      `<option value="${c.id}">${c.guild} › 🔊 ${c.name}${c.members ? ` (${c.members})` : ""}</option>`).join("");
+  }
+  sel.value = s.channel?.id || prev || sel.value;
+  $("leave").disabled = !s.channel;
+  $("join").textContent = s.channel ? "Mudar" : "Entrar";
+  $("callHint").textContent = s.channel
+    ? `Tocando em ${s.channel.guild} › ${s.channel.name}` + (s.privacy_code ? ` · código de privacidade ${s.privacy_code}` : "")
+    : "O bot entra no canal escolhido e transmite o que você tocar.";
+}
+
+const num = (n) => String(n).padStart(3, "0");
+
+function renderTimbre() {
+  if (!state || !voiceList.length) return;
+  const v = state.voice, d = state.dual_voice;
+  $("current").innerHTML = `<span class="vno">${num(v.no)}</span> ${v.name}` +
+    `<small>${v.category_pt}</small>` +
+    `<span class="sub">Som no Discord: ${state.sound || "—"}${state.approximate ? " (aproximado)" : ""}` +
+    (d ? ` · voz dual ${num(d.no)} ${d.name}` : "") + `</span>`;
+  $("favs").innerHTML = FAVS.map(([n, label]) =>
+    `<button data-v="${n}" class="${n === v.no ? "on" : ""}">${label}</button>`).join("");
+  const raw = $("search").value.trim().toLowerCase();
+  const q = PT[raw] || raw;
+  const groups = new Map();
+  for (const x of voiceList) {
+    if (q && !x.name.toLowerCase().includes(q) && !x.category_pt.toLowerCase().includes(raw)
+        && !String(x.no).startsWith(raw.replace(/^0+/, "") || "\0")) continue;
+    if (!groups.has(x.category_pt)) groups.set(x.category_pt, []);
+    groups.get(x.category_pt).push(
+      `<button data-v="${x.no}" class="${x.no === v.no ? "on" : ""}"><span>${num(x.no)}</span>${x.name}</button>`);
+  }
+  $("list").innerHTML = [...groups].map(([cat, items]) =>
+    `<div class="family">${cat}</div><div class="grid">${items.join("")}</div>`).join("")
+    || `<p class="hint">Nada encontrado.</p>`;
+}
+
+function renderSound(s) {
+  $("follow").checked = s.follow_keyboard;
+  $("followLabel").textContent = "Sincronizar com o teclado" + (s.follow_keyboard
+    ? (s.keyboard_out ? " — trocar voz em um troca no outro" : " — só do teclado para o app") : "");
+  if (dragging !== "volume") $("volume").value = Math.round(s.volume * 100);
+  if (dragging !== "reverb") $("reverb").value = Math.round(s.reverb * 100);
+  $("volumeOut").textContent = $("volume").value + "%";
+  $("reverbOut").textContent = $("reverb").value + "%";
+  $("meter").style.width = Math.min(100, s.level * 250) + "%";
+  $("notes").textContent = s.notes + " ♪";
+}
+
+async function refresh() {
+  try {
+    const s = await api("/api/state");
+    const programChanged = !state || state.voice?.no !== s.voice?.no || state.dual_voice?.no !== s.dual_voice?.no;
+    state = s;
+    renderStatus(s); renderChannels(s); renderSound(s);
+    if (programChanged) renderTimbre();
+  } catch {
+    $("status").innerHTML = pill("Painel sem conexão com o bot — ele está rodando?", "bad");
+  }
+}
+
+async function setVoice(no) {
+  state.voice = voiceList.find(x => x.no === no); renderTimbre();
+  await api("/api/sound", { voice: no });
+  refresh();
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-v]");
+  if (b) setVoice(Number(b.dataset.v));
+});
+$("search").addEventListener("input", renderTimbre);
+$("follow").addEventListener("change", (e) => api("/api/sound", { follow_keyboard: e.target.checked }));
+$("join").onclick = async () => {
+  $("join").disabled = true;
+  try { await api("/api/join", { channel_id: $("channel").value }); } finally { $("join").disabled = false; refresh(); }
+};
+$("leave").onclick = async () => { await api("/api/leave", {}); refresh(); };
+$("demo").onclick = () => api("/api/demo", {});
+$("panic").onclick = () => api("/api/panic", {});
+for (const id of ["volume", "reverb"]) {
+  const el = $(id);
+  el.addEventListener("pointerdown", () => dragging = id);
+  el.addEventListener("change", () => dragging = null);
+  el.addEventListener("input", () => {
+    $(id + "Out").textContent = el.value + "%";
+    api("/api/sound", { [id]: el.value / 100 });
+  });
+}
+
+api("/api/voices").then(v => { voiceList = v; renderTimbre(); });
+refresh();
+setInterval(refresh, 250);
+</script>
+</body>
+</html>
