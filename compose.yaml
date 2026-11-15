@@ -1,0 +1,16 @@
+services:
+  bot:
+    build: .
+    image: teclado-lindinho-bot
+    container_name: teclado-bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      LOCAL_MONITOR: ""  # sem alto-falante dentro do container
+    # Acesso ao teclado: o sequenciador MIDI do ALSA do host
+    devices:
+      - /dev/snd:/dev/snd
+    group_add:
+      - audio
+    # Rede do host: o painel continua só em localhost do servidor (acesse por túnel SSH)
+    network_mode: host

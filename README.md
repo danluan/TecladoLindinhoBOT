@@ -93,6 +93,22 @@ ssh -L 8765:localhost:8765 usuario@ip-do-servidor
 
 Os comandos slash (`/entrar`, `/instrumento`...) funcionam sem o painel.
 
+### Com Docker
+
+O servidor só precisa do Docker. O FluidSynth, o soundfont e o Python vêm dentro da imagem.
+
+```sh
+git clone https://github.com/danluan/TecladoLindinhoBOT.git
+cd TecladoLindinhoBOT
+cp .env.example .env && nano .env    # coloque o DISCORD_TOKEN
+docker compose up -d --build
+docker compose logs -f
+```
+
+O container recebe o `/dev/snd` do host para ler o teclado e usa a rede do host, então o painel
+continua em `localhost:8765` do servidor (use o mesmo túnel SSH). Com `restart: unless-stopped`, ele
+sobe junto com o Docker. Para atualizar: `git pull && docker compose up -d --build`.
+
 ## Sobre as vozes do PSR-E333
 
 `psr_e333_voices.json` traz as 497 vozes do teclado (número no visor, banco MSB/LSB, programa e categoria),
