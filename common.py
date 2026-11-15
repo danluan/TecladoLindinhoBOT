@@ -12,7 +12,9 @@ SOUNDFONT_CANDIDATES = [
     os.environ.get("SOUNDFONT", ""),
     "/usr/share/soundfonts/FluidR3_GM.sf2",
     "/usr/share/soundfonts/default.sf2",
+    "/usr/share/sounds/sf2/FluidR3_GM.sf2",  # Debian/Ubuntu (fluid-soundfont-gm)
     *glob.glob("/usr/share/soundfonts/*.sf[23]"),
+    *glob.glob("/usr/share/sounds/sf[23]/*.sf[23]"),
     *glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "*.sf[23]")),
 ]
 

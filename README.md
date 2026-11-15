@@ -69,6 +69,30 @@ Abra **http://localhost:8765**, escolha o canal de voz e clique em **Entrar**. D
 | `SOUNDFONT` | FluidR3_GM | Caminho de um `.sf2`/`.sf3` |
 | `PANEL_PORT` | `8765` | Porta do painel (só aceita conexões de `localhost`) |
 
+## Rodando num servidor
+
+O teclado precisa estar plugado na USB da máquina que roda o bot, então use um servidor em casa
+(mini PC, Raspberry Pi, PC antigo). Não precisa de interface gráfica nem de PipeWire.
+
+```sh
+git clone https://github.com/danluan/TecladoLindinhoBOT.git
+cd TecladoLindinhoBOT
+./deploy/install.sh        # instala dependências e cria o serviço systemd "teclado-bot"
+nano .env                  # coloque o DISCORD_TOKEN; deixe LOCAL_MONITOR vazio
+sudo systemctl start teclado-bot
+journalctl -u teclado-bot -f
+```
+
+O bot sobe sozinho com o servidor e reinicia se cair. Se o teclado não estiver plugado, ele espera até aparecer.
+
+O painel só aceita conexões locais. Para usá-lo do seu PC, abra um túnel SSH e acesse <http://localhost:8765>:
+
+```sh
+ssh -L 8765:localhost:8765 usuario@ip-do-servidor
+```
+
+Os comandos slash (`/entrar`, `/instrumento`...) funcionam sem o painel.
+
 ## Sobre as vozes do PSR-E333
 
 `psr_e333_voices.json` traz as 497 vozes do teclado (número no visor, banco MSB/LSB, programa e categoria),
